@@ -1,0 +1,166 @@
+---
+title: "Homework 4"
+author: "Mari Sanders"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+```
+
+# Problem 1 
+
+a) 
+Sign Test
+```{r}
+blood_sugar <- 120 - c(125,123,117, 123, 115, 112, 128, 118, 124, 111, 116, 
+                       109, 125, 120, 113, 123, 112, 118, 121, 118, 122, 115,105, 
+                       118, 131)
+
+binom.test(sum(blood_sugar > 0), length(blood_sugar), alternative = "less")
+
+```
+
+The p-value is 0.7878, which means we would fail to reject the null hypothesis. 
+
+b)
+Wilcox Signed Rank Test
+```{r}
+blood_sugar2 <- c(125,123,117, 123, 115, 112, 128, 118, 124, 111, 116, 
+                       109, 125, 120, 113, 123, 112, 118, 121, 118, 122, 115,105, 
+                       118, 131)
+wilcox.test(blood_sugar2, mu = 120, alternative = "less")
+```
+
+# Problem 2 
+
+a) 
+
+```{r}
+brain <- read_xlsx("data/Brain.xlsx") %>% janitor::clean_names() 
+brain %>% 
+  slice(-1) %>% 
+  ggplot(aes(x = ln_brain_mass, y = glia_neuron_ratio)) +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  geom_point(color = "red") +
+  geom_point(aes(x = brain$ln_brain_mass[1], 
+                 y = brain$glia_neuron_ratio[1])) +
+  guides(color = "none") +
+  theme_classic()
+human_ln_brain_mass <- brain$ln_brain_mass[1]
+
+non_human <- lm(glia_neuron_ratio ~ ln_brain_mass, data = brain %>% slice(-1))
+
+broom::tidy(non_human)
+
+```
+
+`glia_neuron_ratio` = 0.101 + 0.197*`ln_brain_mass`
+
+b) 
+
+```{r}
+predict(non_human, newdata = data.frame(ln_brain_mass = human_ln_brain_mass))
+```
+
+This means that human `glia_neuron_ratio` is 1.471458. 
+
+
+c) Since we want to look at humans compared to nonhuman primates, the interval for predicted mean glia-neuron ratio is more relevant. 
+
+d) 
+
+```{r}
+
+predict(non_human, newdata = data.frame(ln_brain_mass = human_ln_brain_mass), interval = "confidence", level = 0.95)
+```
+
+We are 95% confident that the predicted mean glia-neuron ratio is between 1.229558 and 1.713358. 
+e) 
+
+The position of the human data point might pull the regression line to it and might not accurately predict the rest of the data points. 
+
+# Problem 3 
+
+a) 
+
+```{r}
+heart_disease <- read_csv("data/HeartDisease.csv") 
+```
+
+This data has `nrow(heart_disease)` rows and `ncol(heart_disease)` columns. It includes `names(heart_disease)` variables. The main outcome is `ERvisits` and the main predictor is `total cost (in dollars)`. The covariates might be `age`, `complications`, `gender`, and `duration`.
+
+```{r}
+heart_disease %>% 
+  summarize(
+    mean_totalcost = mean(totalcost, na.rm = TRUE),
+    median_totalcost = median(totalcost, na.rm = TRUE),
+    sd_totalcost = sd(totalcost, na.rm = TRUE),
+    mean_ervisits = mean(ERvisits, na.rm = TRUE),
+    sd_ervisits = sd(ERvisits, na.rm = TRUE),
+    mean_age = mean(age, na.rm = TRUE),
+    sd_age = sd(age, na.rm = TRUE),
+    mean_complications = mean(complications, na.rm = TRUE),
+    sd_complications = sd(complications, na.rm = TRUE),
+    mean_duration = mean(duration, na.rm = TRUE),
+    sd_duration = sd(duration, na.rm = TRUE)
+  ) %>% knitr::kable()
+```
+
+b) 
+
+```{r}
+heart_disease %>% 
+  ggplot(aes(x = totalcost)) + geom_histogram()
+
+heart_disease %>% 
+  ggplot(aes(x = log(totalcost))) + geom_histogram()
+
+```
+
+Doing a log transformation seems to make the data look more normal. 
+
+c) 
+
+```{r}
+heart_data <- 
+  heart_disease %>% 
+  drop_na() %>% 
+  mutate(comp_bin = ifelse(complications > 0, 1, 0), 
+         log_totalcost = log(totalcost)) %>%
+  filter(!is.na(totalcost) & !is.infinite(totalcost) & 
+         !is.na(log_totalcost) & !is.infinite(log_totalcost))
+```
+
+d) 
+
+```{r}
+heart_data %>% 
+  ggplot(aes(x = log_totalcost, y = ERvisits)) + geom_point() + geom_smooth(method = lm, se = FALSE)
+model <- lm(ERvisits~log_totalcost, data = heart_data)
+broom::tidy(model)
+```
+
+`ERvisits` changes by 0.452 as `log_totalcost` increases by one unit. 
+
+`log_totalcost` is signfiicant but the intercept, which is `ERvisits` is not significant because the p-value is greater than 0.05. 
+
+e) 
+
+```{r}
+mlr <- lm(log_totalcost ~ ERvisits * comp_bin, data = heart_data)
+
+broom::tidy(mlr)
+```
+`comp_bin` is significant, as well as `ERvisits` and the intercept `log_totalcost`, but the interaction between `ERvisits` and `comp_bin` is not significant. 
+
+Since `comp_bin` is not significant, it is not an effect modifier. 
+
+```{r}
+mlr_nocomp <- lm(log_totalcost ~ ERvisits, data = heart_data)
+broom::tidy(mlr_nocomp)
+```
+
