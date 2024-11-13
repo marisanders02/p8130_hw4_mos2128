@@ -9,31 +9,36 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readxl)
+library(BSDA)
 ```
 
 # Problem 1 
 
 a) 
-Sign Test
+$H_0:$ The median blood sugar reading is 120
+$H_1:$ The median blood sugar reading is less than 120. 
+
 ```{r}
-blood_sugar <- 120 - c(125,123,117, 123, 115, 112, 128, 118, 124, 111, 116, 
+blood_sugar <- c(125,123,117, 123, 115, 112, 128, 118, 124, 111, 116, 
                        109, 125, 120, 113, 123, 112, 118, 121, 118, 122, 115,105, 
                        118, 131)
 
-binom.test(sum(blood_sugar > 0), length(blood_sugar), alternative = "less")
+SIGN.test(blood_sugar, md = 120, alternative = "less")
 
 ```
 
-The p-value is 0.7878, which means we would fail to reject the null hypothesis. 
+The `p-value` is 2.98e-08, which means we would reject the null hypothesis that the median blood sugar reading is 120. The `test_statistic` is 0. 
 
 b)
-Wilcox Signed Rank Test
+
+$H_0:$ The median blood sugar readings is 120. 
+$H_1:$ The median blood sugar readings is less than 120. 
+
 ```{r}
-blood_sugar2 <- c(125,123,117, 123, 115, 112, 128, 118, 124, 111, 116, 
-                       109, 125, 120, 113, 123, 112, 118, 121, 118, 122, 115,105, 
-                       118, 131)
-wilcox.test(blood_sugar2, mu = 120, alternative = "less")
+wilcox.test(blood_sugar, mu = 120, alternative = "less")
 ```
+
+The `p_value` is 0.1447, which means we would fail to reject the null hypothesis that the median blood sugar readings is equal to 120. The `test_statistic` is 0. 
 
 # Problem 2 
 
