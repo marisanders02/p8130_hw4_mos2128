@@ -79,6 +79,7 @@ predict(non_human, newdata = data.frame(ln_brain_mass = human_ln_brain_mass), in
 ```
 
 We are 95% confident that the predicted mean glia-neuron ratio is between 1.229558 and 1.713358. 
+
 e) 
 
 The position of the human data point might pull the regression line to it and might not accurately predict the rest of the data points. 
@@ -91,7 +92,7 @@ a)
 heart_disease <- read_csv("data/HeartDisease.csv") 
 ```
 
-This data has `nrow(heart_disease)` rows and `ncol(heart_disease)` columns. It includes `names(heart_disease)` variables. The main outcome is `ERvisits` and the main predictor is `total cost (in dollars)`. The covariates might be `age`, `complications`, `gender`, and `duration`.
+This data has `r nrow(heart_disease)` rows and `r ncol(heart_disease)` columns. It includes `r names(heart_disease)` variables. The main outcome is `ERvisits` and the main predictor is `total cost (in dollars)`. The covariates might be `age`, `complications`, `gender`, and `duration`.
 
 ```{r}
 heart_disease %>% 
@@ -150,17 +151,48 @@ broom::tidy(model)
 
 e) 
 
+Testing for Effect Modifications 
 ```{r}
 mlr <- lm(log_totalcost ~ ERvisits * comp_bin, data = heart_data)
 
 broom::tidy(mlr)
 ```
+
 `comp_bin` is significant, as well as `ERvisits` and the intercept `log_totalcost`, but the interaction between `ERvisits` and `comp_bin` is not significant. 
 
 Since `comp_bin` is not significant, it is not an effect modifier. 
 
+Testing for Confounding
+
 ```{r}
-mlr_nocomp <- lm(log_totalcost ~ ERvisits, data = heart_data)
-broom::tidy(mlr_nocomp)
+base_model <- lm(log_totalcost ~ ERvisits, data = heart_data)
+summary(base_model)
+broom::tidy(base_model)
+
+confounder_model <- lm(log_totalcost ~ ERvisits + comp_bin, data = heart_data)
+broom::tidy(confounder_model)
 ```
 
+Since `comp_bin` is significant, with a `p.value` of `1.38e-9`, so this shows that `comp_bin` is statistically significant and associated with `totalcost` even when controlling for `ERvisits`. 
+
+f) 
+
+```{r}
+extended_model <- lm(log_totalcost ~ ERvisits + comp_bin + age + gender + duration, data = heart_data)
+summary(extended_model)
+broom::tidy(extended_model)
+
+base_model <- lm(log_totalcost ~ ERvisits, data = heart_data)
+summary(base_model)
+broom::tidy(base_model)
+```
+
+It looks like all the variables, except for `gender` is significant and should be included in the model
+
+```{r}
+final_model <- lm(log_totalcost ~ ERvisits + comp_bin + age + duration, data = heart_data)
+summary(final_model)
+broom::tidy(final_model)
+```
+
+Compared to the base_model, the $r^2$ value is higher for the `final_model` that includes multiple parameters. 
