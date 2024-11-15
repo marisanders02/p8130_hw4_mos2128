@@ -17,6 +17,7 @@ library(BSDA)
 a) 
 
 $H_0:$ The median blood sugar reading is 120
+
 $H_1:$ The median blood sugar reading is less than 120. 
 
 ```{r}
@@ -33,6 +34,7 @@ The `p-value` is 0.2706, which means we would fail to reject the null hypothesis
 b)
 
 $H_0:$ The median blood sugar readings is 120. 
+
 $H_1:$ The median blood sugar readings is less than 120. 
 
 ```{r}
@@ -152,7 +154,7 @@ model <- lm(log_totalcost~ERvisits, data = heart_data)
 broom::tidy(model)
 ```
 
-`ERvisits` changes by 0.452 as `log_totalcost` increases by one unit. 
+`ERvisits` changes by 0.225 as `log_totalcost` increases by one unit. 
 
 `log_totalcost` is significant but the intercept, which is `ERvisits` is not significant because the p-value is greater than 0.05. 
 
@@ -163,14 +165,14 @@ i)
 Testing for Effect Modifications
 
 ```{r}
-mlr <- lm(log_totalcost ~ ERvisits*comp_bin , data = heart_data)
+mlr <- lm(log_totalcost ~ ERvisits*I(comp_bin) , data = heart_data)
 
-broom::tidy(mlr)
+broom::tidy(mlr) %>% view()
 ```
 
-`comp_bin` is significant, as well as `ERvisits` and the intercept `log_totalcost`, but the interaction between `ERvisits` and `comp_bin` is not significant. 
+`comp_bin` is significant, as well as `ERvisits` and the intercept `log_totalcost`, but the interaction between `ERvisits` and `comp_bin` is significant. 
 
-Since `comp_bin` is not significant, it is not an effect modifier.
+Since `comp_bin` is significant, it is an effect modifier.
 
 ii) 
 
@@ -181,7 +183,7 @@ base_model <- lm(log_totalcost ~ ERvisits, data = heart_data)
 summary(base_model)
 broom::tidy(base_model)
 
-confounder_model <- lm(log_totalcost ~ ERvisits + comp_bin, data = heart_data)
+confounder_model <- lm(log_totalcost ~ ERvisits + I(comp_bin), data = heart_data)
 broom::tidy(confounder_model)
 ```
 
@@ -189,25 +191,27 @@ Since `comp_bin` is significant, with a `p.value` of `1.38e-9`, so this shows th
 
 iii) 
 
+The interaction between `comp_bin` and `ERvists` is significant, so this term should be included, but it doesn't significantly change the slope of `ERvisits` when added as a cofounder, so it should not be included as a cofounder. 
 
 f) 
 
 ```{r}
-extended_model <- lm(log_totalcost ~ ERvisits + comp_bin + age + gender + duration, data = heart_data)
+extended_model <- lm(log_totalcost ~ ERvisits + I(comp_bin) + age + I(gender) + duration, data = heart_data)
 summary(extended_model)
 broom::tidy(extended_model)
 
+
+```
+
+It looks like all the variable are significant, so should all be included in the model
+
+```{r}
+final_model <- lm(log_totalcost ~ ERvisits + I(comp_bin) + age + I(gender) + duration, data = heart_data)
+summary(final_model)
+broom::tidy(final_model)
 base_model <- lm(log_totalcost ~ ERvisits, data = heart_data)
 summary(base_model)
 broom::tidy(base_model)
 ```
 
-It looks like all the variables, except for `gender` is significant and should be included in the model
-
-```{r}
-final_model <- lm(log_totalcost ~ ERvisits + comp_bin + age + duration, data = heart_data)
-summary(final_model)
-broom::tidy(final_model)
-```
-
-Compared to the base_model, the $r^2$ value is higher for the `final_model` that includes multiple parameters. 
+Compared to the base_model, the $r^2$ value is higher for the `final_model` that includes multiple parameters, so we should choose the `final_model` to predict `log_totalcost` from `ERvisits`

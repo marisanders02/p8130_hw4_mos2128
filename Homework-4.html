@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mari Sanders" />
 
-<meta name="date" content="2024-11-14" />
+<meta name="date" content="2024-11-15" />
 
 <title>Homework 4</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Homework 4</h1>
 <h4 class="author">Mari Sanders</h4>
-<h4 class="date">2024-11-14</h4>
+<h4 class="date">2024-11-15</h4>
 
 </div>
 
@@ -363,8 +363,9 @@ display: none;
 <li></li>
 </ol>
 <p><span class="math inline">\(H_0:\)</span> The median blood sugar
-reading is 120 <span class="math inline">\(H_1:\)</span> The median
-blood sugar reading is less than 120.</p>
+reading is 120</p>
+<p><span class="math inline">\(H_1:\)</span> The median blood sugar
+reading is less than 120.</p>
 <pre class="r"><code>blood_sugar &lt;- c(125,123,117, 123, 115, 112, 128, 118, 124, 111, 116, 
                        109, 125, 120, 113, 123, 112, 118, 121, 118, 122, 115,105, 
                        118, 131)
@@ -395,8 +396,9 @@ The <code>test_statistic</code> is 10.</p>
 <li></li>
 </ol>
 <p><span class="math inline">\(H_0:\)</span> The median blood sugar
-readings is 120. <span class="math inline">\(H_1:\)</span> The median
-blood sugar readings is less than 120.</p>
+readings is 120.</p>
+<p><span class="math inline">\(H_1:\)</span> The median blood sugar
+readings is less than 120.</p>
 <pre class="r"><code>wilcox.test(blood_sugar, mu = 120, alternative = &quot;less&quot;)</code></pre>
 <pre><code>## Warning in wilcox.test.default(blood_sugar, mu = 120, alternative = &quot;less&quot;):
 ## cannot compute exact p-value with ties</code></pre>
@@ -593,7 +595,7 @@ broom::tidy(model)</code></pre>
 ##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
 ## 1 (Intercept)    5.53     0.105      52.6  1.32e-259
 ## 2 ERvisits       0.225    0.0243      9.26 1.84e- 19</code></pre>
-<p><code>ERvisits</code> changes by 0.452 as <code>log_totalcost</code>
+<p><code>ERvisits</code> changes by 0.225 as <code>log_totalcost</code>
 increases by one unit.</p>
 <p><code>log_totalcost</code> is significant but the intercept, which is
 <code>ERvisits</code> is not significant because the p-value is greater
@@ -603,21 +605,14 @@ than 0.05.</p>
 <li></li>
 </ol>
 <p>Testing for Effect Modifications</p>
-<pre class="r"><code>mlr &lt;- lm(log_totalcost ~ ERvisits*comp_bin , data = heart_data)
+<pre class="r"><code>mlr &lt;- lm(log_totalcost ~ ERvisits*I(comp_bin) , data = heart_data)
 
-broom::tidy(mlr)</code></pre>
-<pre><code>## # A tibble: 4 × 5
-##   term              estimate std.error statistic   p.value
-##   &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
-## 1 (Intercept)         5.49      0.105      52.3  1.04e-257
-## 2 ERvisits            0.209     0.0249      8.41 1.90e- 16
-## 3 comp_bin            2.19      0.554       3.95 8.47e-  5
-## 4 ERvisits:comp_bin  -0.0975    0.0963     -1.01 3.11e-  1</code></pre>
+broom::tidy(mlr) %&gt;% view()</code></pre>
 <p><code>comp_bin</code> is significant, as well as
 <code>ERvisits</code> and the intercept <code>log_totalcost</code>, but
 the interaction between <code>ERvisits</code> and <code>comp_bin</code>
-is not significant.</p>
-<p>Since <code>comp_bin</code> is not significant, it is not an effect
+is significant.</p>
+<p>Since <code>comp_bin</code> is significant, it is an effect
 modifier.</p>
 <ol start="2" style="list-style-type: lower-roman">
 <li></li>
@@ -649,14 +644,14 @@ summary(base_model)</code></pre>
 ##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
 ## 1 (Intercept)    5.53     0.105      52.6  1.32e-259
 ## 2 ERvisits       0.225    0.0243      9.26 1.84e- 19</code></pre>
-<pre class="r"><code>confounder_model &lt;- lm(log_totalcost ~ ERvisits + comp_bin, data = heart_data)
+<pre class="r"><code>confounder_model &lt;- lm(log_totalcost ~ ERvisits + I(comp_bin), data = heart_data)
 broom::tidy(confounder_model)</code></pre>
 <pre><code>## # A tibble: 3 × 5
 ##   term        estimate std.error statistic   p.value
 ##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
 ## 1 (Intercept)    5.51     0.103      53.6  1.39e-264
 ## 2 ERvisits       0.203    0.0241      8.44 1.56e- 16
-## 3 comp_bin       1.71     0.279       6.11 1.56e-  9</code></pre>
+## 3 I(comp_bin)    1.71     0.279       6.11 1.56e-  9</code></pre>
 <p>Since <code>comp_bin</code> is significant, with a
 <code>p.value</code> of <code>1.38e-9</code>, so this shows that
 <code>comp_bin</code> is statistically significant and associated with
@@ -665,14 +660,19 @@ broom::tidy(confounder_model)</code></pre>
 <ol start="3" style="list-style-type: lower-roman">
 <li></li>
 </ol>
+<p>The interaction between <code>comp_bin</code> and
+<code>ERvists</code> is significant, so this term should be included,
+but it doesn’t significantly change the slope of <code>ERvisits</code>
+when added as a cofounder, so it should not be included as a
+cofounder.</p>
 <ol start="6" style="list-style-type: lower-alpha">
 <li></li>
 </ol>
-<pre class="r"><code>extended_model &lt;- lm(log_totalcost ~ ERvisits + comp_bin + age + gender + duration, data = heart_data)
+<pre class="r"><code>extended_model &lt;- lm(log_totalcost ~ ERvisits + I(comp_bin) + age + I(gender) + duration, data = heart_data)
 summary(extended_model)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = log_totalcost ~ ERvisits + comp_bin + age + gender + 
+## lm(formula = log_totalcost ~ ERvisits + I(comp_bin) + age + I(gender) + 
 ##     duration, data = heart_data)
 ## 
 ## Residuals:
@@ -683,9 +683,9 @@ summary(extended_model)</code></pre>
 ##               Estimate Std. Error t value Pr(&gt;|t|)    
 ## (Intercept)  5.9404610  0.5104064  11.639  &lt; 2e-16 ***
 ## ERvisits     0.1745975  0.0225736   7.735 3.20e-14 ***
-## comp_bin     1.5044946  0.2584882   5.820 8.57e-09 ***
+## I(comp_bin)  1.5044946  0.2584882   5.820 8.57e-09 ***
 ## age         -0.0206475  0.0086746  -2.380   0.0175 *  
-## gender      -0.2067662  0.1387002  -1.491   0.1364    
+## I(gender)   -0.2067662  0.1387002  -1.491   0.1364    
 ## duration     0.0057150  0.0004888  11.691  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
@@ -699,9 +699,46 @@ summary(extended_model)</code></pre>
 ##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
 ## 1 (Intercept)  5.94     0.510        11.6  5.49e-29
 ## 2 ERvisits     0.175    0.0226        7.73 3.20e-14
-## 3 comp_bin     1.50     0.258         5.82 8.57e- 9
+## 3 I(comp_bin)  1.50     0.258         5.82 8.57e- 9
 ## 4 age         -0.0206   0.00867      -2.38 1.75e- 2
-## 5 gender      -0.207    0.139        -1.49 1.36e- 1
+## 5 I(gender)   -0.207    0.139        -1.49 1.36e- 1
+## 6 duration     0.00572  0.000489     11.7  3.26e-29</code></pre>
+<p>It looks like all the variable are significant, so should all be
+included in the model</p>
+<pre class="r"><code>final_model &lt;- lm(log_totalcost ~ ERvisits + I(comp_bin) + age + I(gender) + duration, data = heart_data)
+summary(final_model)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = log_totalcost ~ ERvisits + I(comp_bin) + age + I(gender) + 
+##     duration, data = heart_data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -5.4711 -1.0340 -0.1158  0.9493  4.3372 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  5.9404610  0.5104064  11.639  &lt; 2e-16 ***
+## ERvisits     0.1745975  0.0225736   7.735 3.20e-14 ***
+## I(comp_bin)  1.5044946  0.2584882   5.820 8.57e-09 ***
+## age         -0.0206475  0.0086746  -2.380   0.0175 *  
+## I(gender)   -0.2067662  0.1387002  -1.491   0.1364    
+## duration     0.0057150  0.0004888  11.691  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.624 on 782 degrees of freedom
+## Multiple R-squared:  0.2694, Adjusted R-squared:  0.2647 
+## F-statistic: 57.68 on 5 and 782 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>broom::tidy(final_model)</code></pre>
+<pre><code>## # A tibble: 6 × 5
+##   term        estimate std.error statistic  p.value
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 (Intercept)  5.94     0.510        11.6  5.49e-29
+## 2 ERvisits     0.175    0.0226        7.73 3.20e-14
+## 3 I(comp_bin)  1.50     0.258         5.82 8.57e- 9
+## 4 age         -0.0206   0.00867      -2.38 1.75e- 2
+## 5 I(gender)   -0.207    0.139        -1.49 1.36e- 1
 ## 6 duration     0.00572  0.000489     11.7  3.26e-29</code></pre>
 <pre class="r"><code>base_model &lt;- lm(log_totalcost ~ ERvisits, data = heart_data)
 summary(base_model)</code></pre>
@@ -729,43 +766,10 @@ summary(base_model)</code></pre>
 ##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
 ## 1 (Intercept)    5.53     0.105      52.6  1.32e-259
 ## 2 ERvisits       0.225    0.0243      9.26 1.84e- 19</code></pre>
-<p>It looks like all the variables, except for <code>gender</code> is
-significant and should be included in the model</p>
-<pre class="r"><code>final_model &lt;- lm(log_totalcost ~ ERvisits + comp_bin + age + duration, data = heart_data)
-summary(final_model)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = log_totalcost ~ ERvisits + comp_bin + age + duration, 
-##     data = heart_data)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -5.6248 -1.0474 -0.1282  0.9569  4.3816 
-## 
-## Coefficients:
-##               Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  5.8869492  0.5095398  11.553  &lt; 2e-16 ***
-## ERvisits     0.1709378  0.0224572   7.612 7.79e-14 ***
-## comp_bin     1.5056723  0.2586886   5.820 8.56e-09 ***
-## age         -0.0203055  0.0086783  -2.340   0.0195 *  
-## duration     0.0057069  0.0004892  11.666  &lt; 2e-16 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 1.625 on 783 degrees of freedom
-## Multiple R-squared:  0.2673, Adjusted R-squared:  0.2636 
-## F-statistic: 71.43 on 4 and 783 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code>broom::tidy(final_model)</code></pre>
-<pre><code>## # A tibble: 5 × 5
-##   term        estimate std.error statistic  p.value
-##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
-## 1 (Intercept)  5.89     0.510        11.6  1.28e-28
-## 2 ERvisits     0.171    0.0225        7.61 7.79e-14
-## 3 comp_bin     1.51     0.259         5.82 8.56e- 9
-## 4 age         -0.0203   0.00868      -2.34 1.95e- 2
-## 5 duration     0.00571  0.000489     11.7  4.16e-29</code></pre>
 <p>Compared to the base_model, the <span class="math inline">\(r^2\)</span> value is higher for the
-<code>final_model</code> that includes multiple parameters.</p>
+<code>final_model</code> that includes multiple parameters, so we should
+choose the <code>final_model</code> to predict
+<code>log_totalcost</code> from <code>ERvisits</code></p>
 </div>
 
 
