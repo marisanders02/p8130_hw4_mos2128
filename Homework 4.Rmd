@@ -165,33 +165,36 @@ i)
 Testing for Effect Modifications
 
 ```{r}
-mlr <- lm(log_totalcost ~ ERvisits*I(comp_bin) , data = heart_data)
+mlr <- lm(log_totalcost ~ ERvisits*comp_bin , data = heart_data)
 
-broom::tidy(mlr) %>% view()
+broom::tidy(mlr) 
 ```
 
-`comp_bin` is significant, as well as `ERvisits` and the intercept `log_totalcost`, but the interaction between `ERvisits` and `comp_bin` is significant. 
+`comp_bin` is significant, but the interaction between `ERvisits` and `comp_bin` is not significant. This means that since `comp_bin` is not an effect modifier in the relationship between `totalcost` and `ERvisits`. 
 
-Since `comp_bin` is significant, it is an effect modifier.
 
 ii) 
 
 Testing for Confounding
 
 ```{r}
-base_model <- lm(log_totalcost ~ ERvisits, data = heart_data)
-summary(base_model)
-broom::tidy(base_model)
+heart_data %>% 
+  filter(comp_bin == 1) %>% 
+  lm(log_totalcost ~ERvisits, data = .) %>% 
+  broom::tidy()
 
-confounder_model <- lm(log_totalcost ~ ERvisits + I(comp_bin), data = heart_data)
-broom::tidy(confounder_model)
+heart_data %>%  
+  filter(comp_bin == 0) %>% 
+  lm(log_totalcost ~ERvisits, data = .) %>% 
+  broom::tidy()
+
 ```
 
-Since `comp_bin` is significant, with a `p.value` of `1.38e-9`, so this shows that `comp_bin` is statistically significant and associated with `totalcost` even when controlling for `ERvisits`. 
+Since `comp_bin` does not change the slope significantly, does not change the directionality, and since the interaction is not significant, it is not a confounder. 
 
 iii) 
 
-The interaction between `comp_bin` and `ERvists` is significant, so this term should be included, but it doesn't significantly change the slope of `ERvisits` when added as a cofounder, so it should not be included as a cofounder. 
+I think that `comp_bin` should be included in the model because it is significant in the model, even though it is not a confounder and it is not an effect modifier. It is independently associated with `log_totalcost` based on it being signficiant, so it should be included. 
 
 f) 
 
@@ -206,7 +209,7 @@ broom::tidy(extended_model)
 It looks like all the variable are significant, so should all be included in the model
 
 ```{r}
-final_model <- lm(log_totalcost ~ ERvisits + I(comp_bin) + age + I(gender) + duration, data = heart_data)
+final_model <- lm(log_totalcost ~ ERvisits + comp_bin + age + gender + duration, data = heart_data)
 summary(final_model)
 broom::tidy(final_model)
 base_model <- lm(log_totalcost ~ ERvisits, data = heart_data)
